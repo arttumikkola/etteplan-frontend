@@ -1,25 +1,73 @@
-export const WeatherCard = () => {
+type Weather = {
+  lat: number;
+  lon: number;
+  current: {
+    dt: number;
+    temp: number;
+    humidity: number;
+    wind_speed: number;
+    weather: {
+      id: number;
+      main: string;
+      description: string;
+      icon: string;
+    }[];
+  };
+};
+
+export const WeatherCard = (weather: Weather) => {
+  const now = new Date();
+  const currentTime =
+    now.getHours() + ":" + now.getMinutes().toString().padStart(2, "0");
+
+  function getDayWithSuffix(day: number): string {
+    if (day >= 11 && day <= 13) {
+      return `${day}th`;
+    }
+    switch (day % 10) {
+      case 1:
+        return `${day}st`;
+      case 2:
+        return `${day}nd`;
+      case 3:
+        return `${day}rd`;
+      default:
+        return `${day}th`;
+    }
+  }
+  const dayOfMonth = getDayWithSuffix(now.getDate());
+  const monthName = now.toLocaleString("en-US", { month: "long" });
+  const formattedDate = `${monthName} ${dayOfMonth}`;
+
   return (
-    <div className="flex flex-row justify-between m-2">
+    <div className="m-4 border border-border rounded-md flex flex-row justify-between bg-white">
       <div className="flex flex-col space-y-8">
         <div className="m-2">
-          <p className="text-2xl">Espoo</p>
-          <p className="text-base text-text">Scattered clouds</p>
+          <p className="text-2xl">Tampere</p>
+          <p className="text-base text-text">
+            {weather.current.weather[0].description}
+          </p>
         </div>
         <div className="m-2">
-          <p className="text-xl">May 2nd</p>
-          <p className="text-base text-text">11.53</p>
+          <p className="text-xl">{formattedDate}</p>
+          <p className="text-base text-text">{currentTime}</p>
         </div>
       </div>
-      <div className="flex flex-col space-y-10 items-end">
+      <div className="flex flex-col space-y-10 items-end m-2">
         <div className="flex flex-row">
-          <img src="https://openweathermap.org/img/wn/01d.png" alt="Clouds" />
-          <p className="text-4xl">0°C</p>
+          <img
+            src={`http://openweathermap.org/img/w/${weather.current.weather[0].icon}.png`}
+          />
+          <p className="text-4xl">{weather.current.temp.toFixed(0)}°C</p>
         </div>
         <div className="m-2 flex flex-col items-end">
-          <p className="text-text text-base">Wind: 20 m/s</p>
-          <p className="text-text text-base">Humidity: 30%</p>
-          <p className="text-text text-base">Precipitation (3h): 5 mm</p>
+          <p className="text-text text-base">
+            Wind: {weather.current.wind_speed} m/s
+          </p>
+          <p className="text-text text-base">
+            Humidity: {weather.current.humidity} %
+          </p>
+          <p className="text-text text-base">Precipitation (3h): 3 mm</p>
         </div>
       </div>
     </div>
