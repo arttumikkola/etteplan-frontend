@@ -3,9 +3,8 @@ import { Dropdown } from "./components/Dropdown";
 import { WeatherCard } from "./components/WeatherCard";
 import { ForecastCard } from "./components/ForecastCard";
 import { useEffect, useState } from "react";
-
-// 289126ef1b80a9dd3fd33c17f6d4035a
-// 24392cbec8b2d93a94b2e5a23018dfad
+import dotenv from "dotenv";
+dotenv.config();
 
 type Weather = {
   lat: number;
@@ -26,12 +25,13 @@ type Weather = {
 
 function App() {
   const [weather, setWeather] = useState<Weather | null>(null);
+  const apiKey = process.env.REACT_APP_API_KEY;
   var lat = 61.4991;
   var lon = 23.7871;
 
   useEffect(() => {
     fetch(
-      `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=hourly,minutely&units=metric&appid=289126ef1b80a9dd3fd33c17f6d403`
+      `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=hourly,minutely&units=metric&appid=${apiKey}`
     )
       .then((response) => response.json())
       .then((data) => setWeather(data));
