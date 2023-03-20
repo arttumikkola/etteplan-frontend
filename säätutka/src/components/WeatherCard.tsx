@@ -1,6 +1,4 @@
 type Weather = {
-  lat: number;
-  lon: number;
   current: {
     dt: number;
     temp: number;
@@ -13,6 +11,9 @@ type Weather = {
       icon: string;
     }[];
   };
+  daily: {
+    rain: number;
+  }[];
 };
 
 export const WeatherCard = (weather: Weather) => {
@@ -62,12 +63,14 @@ export const WeatherCard = (weather: Weather) => {
         </div>
         <div className="m-2 flex flex-col items-end">
           <p className="text-text text-base">
-            Wind: {weather.current.wind_speed} m/s
+            Wind: {weather.current.wind_speed.toFixed(1)} m/s
           </p>
           <p className="text-text text-base">
             Humidity: {weather.current.humidity} %
           </p>
-          <p className="text-text text-base">Precipitation (3h): 3 mm</p>
+          <p className="text-text text-base">
+            Precipitation (3h): {weather.daily[0].rain.toFixed(1)} mm
+          </p>
         </div>
       </div>
     </div>
