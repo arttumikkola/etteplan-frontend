@@ -5,6 +5,7 @@ import { ForecastCard } from "./components/ForecastCard";
 import { useEffect, useState } from "react";
 
 type Weather = {
+  city: string;
   current: {
     dt: number;
     temp: number;
@@ -22,7 +23,7 @@ type Weather = {
   }[];
 };
 
-type ForeCast = {
+type Forecast = {
   list: {
     dt: number;
     main: {
@@ -42,78 +43,141 @@ type ForeCast = {
   }[];
 };
 
+const cities = [
+  { name: "Tampere", lat: 61.4991, lon: 23.7871, id: 1 },
+  { name: "Jyväskylä", lat: 62.2415, lon: 25.7209, id: 2 },
+  { name: "Kuopio", lat: 62.8924, lon: 27.677, id: 3 },
+  { name: "Espoo", lat: 60.25, lon: 24.6667, id: 4 },
+  { name: "Kaikki kaupungit", lat: 0, lon: 0, id: 5 },
+];
+
 function App() {
   const [weather, setWeather] = useState<Weather | null>(null);
-  const [forecast, setForecast] = useState<ForeCast>({ list: [] });
-  const [city, setCity] = useState("Kaikki kaupungit");
-  const [lat, setLat] = useState(61.4991);
-  const [lon, setLon] = useState(23.7871);
+  const [forecast, setForecast] = useState<Forecast>({ list: [] });
+  const [city, setCity] = useState(cities[0]);
+  const [allCitiesWeather, setAllCitiesWeather] = useState<Weather[]>([]);
+  const [allCitiesForecast, setAllCitiesForecast] = useState<Forecast[]>([]);
+  const [errorMessage, setErrorMessage] = useState("");
   const apiKey = import.meta.env.VITE_API_KEY;
 
   useEffect(() => {
-    setCoordinates(city);
-    fetch(
-      `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&units=metric&exclude=minutely,hourly&appid=${apiKey}`
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        setWeather(data);
-        console.log(data);
+    setErrorMessage("");
+    if (city.name === "Kaikki kaupungit") {
+      const weatherPromises = cities
+        .filter((city) => city.name !== "Kaikki kaupungit")
+        .map(({ lat, lon }) =>
+          fetch(
+            `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&units=metric&exclude=minutely,hourly&appid=${apiKey}`
+          )
+            .then((response) => {
+              if (!response.ok) {
+                handleErrorMessage(response.statusText);
+              }
+              return response.json();
+            })
+            .then((data) => data)
+        );
+      Promise.all(weatherPromises).then((data) => {
+        setAllCitiesWeather(
+          data.map((weather: any, index) => {
+            return {
+              ...weather,
+              city: cities[index].name,
+            };
+          })
+        );
       });
-    fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        setForecast(data);
-        console.log(data);
+      const forecastPromises = cities.map(({ lat, lon }) =>
+        fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`
+        )
+          .then((response) => {
+            if (!response.ok) {
+              handleErrorMessage(response.statusText);
+            }
+            return response.json();
+          })
+          .then((data) => data)
+      );
+
+      Promise.all(forecastPromises).then((data) => {
+        setAllCitiesForecast(data.map((forecast: any) => forecast));
       });
-  }, [lat, lon]);
+    } else {
+      fetch(
+        `https://api.openweathermap.org/data/2.5/onecall?lat=${city.lat}&lon=${city.lon}&units=metric&exclude=minutely,hourly&appid=${apiKey}`
+      )
+        .then((response) => {
+          if (!response.ok) {
+            handleErrorMessage(response.statusText);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          setWeather({
+            ...data,
+            city: city.name,
+          });
+        });
+
+      fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?lat=${city.lat}&lon=${city.lon}&units=metric&appid=${apiKey}`
+      )
+        .then((response) => {
+          if (!response.ok) {
+            handleErrorMessage(response.statusText);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          setForecast(data);
+        });
+    }
+  }, [city]);
 
   const handleCityChange = (city: string) => {
-    setCity(city);
-    console.log(city);
-  };
-
-  const setCoordinates = (city: string) => {
-    var treLat = 61.4991;
-    var treLon = 23.7871;
-    var jklLat = 62.2415;
-    var jklLon = 25.7209;
-    var kuoLat = 62.8924;
-    var kuoLon = 27.677;
-    var espLat = 60.25;
-    var espLon = 24.6667;
-
-    if (city === "Tampere") {
-      setLat(treLat);
-      setLon(treLon);
-    } else if (city === "Jyväskylä") {
-      setLat(jklLat);
-      setLon(jklLon);
-    } else if (city === "Kuopio") {
-      setLat(kuoLat);
-      setLon(kuoLon);
-    } else if (city === "Espoo") {
-      setLat(espLat);
-      setLon(espLon);
-    } else {
-      setLat(treLat);
-      setLon(treLon);
+    const cityObject = cities.find((cityObject) => cityObject.name === city);
+    if (cityObject) {
+      setCity(cityObject);
     }
   };
 
-  if (!weather || !forecast) return <div>Loading...</div>;
-  else {
-    return (
-      <div className="">
-        <Header />
-        <Dropdown city={city} handleCityChange={handleCityChange} />
-        {weather && <WeatherCard {...weather} />}
-        {<ForecastCard {...forecast} />}
-      </div>
-    );
-  }
-}
+  const handleErrorMessage = (message: string) => {
+    setErrorMessage(message);
+    console.log(message);
+  };
 
+  return (
+    <>
+      <Header />
+      <Dropdown
+        city={city.name}
+        handleCityChange={handleCityChange}
+        cities={cities}
+      />
+      {errorMessage && <p className="text-center">{errorMessage}</p>}
+      {weather?.current &&
+        weather?.city &&
+        city.name !== "Kaikki kaupungit" && (
+          <>
+            <WeatherCard {...weather} />
+            <ForecastCard {...forecast} />
+          </>
+        )}
+
+      {city.name === "Kaikki kaupungit" &&
+        allCitiesWeather.length > 0 &&
+        allCitiesForecast.length > 0 &&
+        allCitiesWeather.map(
+          (weather, index) =>
+            weather && (
+              <div key={index}>
+                <WeatherCard {...allCitiesWeather[index]} />
+                <ForecastCard {...allCitiesForecast[index]} />
+              </div>
+            )
+        )}
+    </>
+  );
+}
 export default App;
