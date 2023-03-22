@@ -58,7 +58,6 @@ function App() {
   const [allCitiesWeather, setAllCitiesWeather] = useState<Weather[]>([]);
   const [allCitiesForecast, setAllCitiesForecast] = useState<Forecast[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
-  // Lisää oma API-avain tähän
   const apiKey = import.meta.env.VITE_API_KEY;
 
   useEffect(() => {
