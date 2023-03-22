@@ -1,4 +1,5 @@
 type Weather = {
+  city: string;
   current: {
     dt: number;
     temp: number;
@@ -44,7 +45,7 @@ export const WeatherCard = (weather: Weather) => {
     <div className="m-4 border border-border rounded-md flex flex-row justify-between bg-white">
       <div className="flex flex-col space-y-8">
         <div className="m-2">
-          <p className="text-2xl">Tampere</p>
+          <p className="text-2xl">{weather.city}</p>
           <p className="text-base text-text">
             {weather.current.weather[0].description}
           </p>
