@@ -11,4 +11,8 @@ Etteplan's recruitment task
 
 `npm install`
 
+Add file ".env" inside "säätutka" folder.
+
+Then inside .env add `VITE_API_KEY="enter your openweathermap api key here"`
+
 `npm run dev`
